@@ -36,9 +36,13 @@ public class JWTUtil {
                 .claim("username", username)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
+                //현재 발행 시간
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
+                //언제 소멸될 것인지
                 .signWith(secretKey)
+                //비밀키를 signature 암호화
                 .compact();
+                //토큰을 압축해 리턴
     }
 
 
