@@ -21,6 +21,17 @@ public class ReissueController {
         this.jwtUtil = jwtUtil;
     }
 
+    private Cookie createCookie(String key, String value) {
+
+        Cookie cookie = new Cookie(key, value);
+        cookie.setMaxAge(24*60*60);
+        //cookie.setSecure(true);
+        //cookie.setPath("/");
+        cookie.setHttpOnly(true);
+
+        return cookie;
+    }
+
 
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
@@ -68,10 +79,13 @@ public class ReissueController {
 
         //make new JWT
         String newAccess = jwtUtil.createJwt("access", username, role, 600000L);
+        String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
         //response
         response.setHeader("access", newAccess);
-        //새로운 Access Token 넣어준다
+        response.addCookie(createCookie("refresh", newRefresh));
+        //response
+        //새로운 Access Token 과 Refresh Token 넣어준다
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
