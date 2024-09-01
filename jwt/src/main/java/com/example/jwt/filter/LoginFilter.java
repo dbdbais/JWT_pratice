@@ -2,6 +2,8 @@ package com.example.jwt.filter;
 
 import com.example.jwt.dto.CustomUserDetails;
 import com.example.jwt.dto.JWTUtil;
+import com.example.jwt.entity.RefreshEntity;
+import com.example.jwt.entity.RefreshRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -24,10 +27,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final JWTUtil jwtUtil;
 
+    private final RefreshRepository refreshRepository;
+
     @Autowired
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil){
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshRepository refreshRepository){
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.refreshRepository = refreshRepository;
     }
 
     @Override
@@ -59,6 +65,20 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         return cookie;
     }
+
+    //현재 RefreshEntity 추가하는 함수
+    private void addRefreshEntity(String username, String refresh, Long expiredMs) {
+
+        Date date = new Date(System.currentTimeMillis() + expiredMs);
+
+        RefreshEntity refreshEntity = new RefreshEntity();
+        refreshEntity.setUsername(username);
+        refreshEntity.setRefresh(refresh);
+        refreshEntity.setExpiration(date.toString());
+
+        refreshRepository.save(refreshEntity);
+    }
+
     @Override
     //성공적으로 인증이 된다면
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain, Authentication authentication){
@@ -97,6 +117,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         //토큰 생성
         String access = jwtUtil.createJwt("access", username, role, 600000L);
         String refresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
+
+        //Server에 Refresh 토큰 저장
+        addRefreshEntity(username, refresh, 86400000L);
 
         //응답 설정
         response.setHeader("access", access);
