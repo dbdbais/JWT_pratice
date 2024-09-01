@@ -3,9 +3,11 @@ package com.example.jwt.filter;
 import com.example.jwt.dto.CustomUserDetails;
 import com.example.jwt.dto.JWTUtil;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,30 +46,64 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         return authenticationManager.authenticate(authToken);
     }
 
+    private Cookie createCookie(String key, String value) {
+
+        Cookie cookie = new Cookie(key, value);
+        cookie.setMaxAge(24*60*60);
+        //cookie.setSecure(true); 
+        //HTTPS 쓸 경우 활성화
+        //cookie.setPath("/");
+        // 쿠키가 적용될 범위 설정
+        cookie.setHttpOnly(true);
+        //JS단에서 접근 못하게 막는다
+
+        return cookie;
+    }
     @Override
     //성공적으로 인증이 된다면
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain, Authentication authentication){
-        //UserDetailsS
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        //인증된 사용자의 주체를 반환한다.
+//        //UserDetailsS
+//        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+//        //인증된 사용자의 주체를 반환한다.
+//
+//        String username = customUserDetails.getUsername();
+//        //사용자의 이름을 저장
+//
+//        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+//        //authentication 객체에서 사용자가 가진 권한 목록을 가져온다.
+//        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
+//        //authorities 컬렉션을 순회하기 위해 이터레이터 생성
+//        GrantedAuthority auth = iterator.next();
+//        //이터레이터에서 첫 번째 권한을 가져옵니다.
+//
+//        String role = auth.getAuthority();
+//        //auth 객체로 권한의 이름을 가져온다.
+//
+//        String token = jwtUtil.createJwt(username, role, 60*60*10L);
+//        //JWT Util 객체를 사용해 JWT를 생성한다. (유효기간, 역할, 시간)등을 받아 생성.
+//        response.addHeader("Authorization", "Bearer " + token);
+//        //응답으로 넘긴다.
 
-        String username = customUserDetails.getUsername();
-        //사용자의 이름을 저장
+
+
+        //유저 정보
+        String username = authentication.getName();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        //authentication 객체에서 사용자가 가진 권한 목록을 가져온다.
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
-        //authorities 컬렉션을 순회하기 위해 이터레이터 생성
         GrantedAuthority auth = iterator.next();
-        //이터레이터에서 첫 번째 권한을 가져옵니다.
-
         String role = auth.getAuthority();
-        //auth 객체로 권한의 이름을 가져온다.
 
-        String token = jwtUtil.createJwt(username, role, 60*60*10L);
-        //JWT Util 객체를 사용해 JWT를 생성한다. (유효기간, 역할, 시간)등을 받아 생성.
-        response.addHeader("Authorization", "Bearer " + token);
-        //응답으로 넘긴다.
+        //토큰 생성
+        String access = jwtUtil.createJwt("access", username, role, 600000L);
+        String refresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
+
+        //응답 설정
+        response.setHeader("access", access);
+        //헤더에 엑세스 토큰 넣어줌
+        response.addCookie(createCookie("refresh", refresh));
+        //쿠키에 리프레시 토큰 넣어줌
+        response.setStatus(HttpStatus.OK.value());
     }
 
     //로그인 실패시 실행하는 메소드
