@@ -49,6 +49,4 @@ public class JWTUtil {
                 .compact();
                 //토큰을 압축해 리턴
     }
-
-
 }

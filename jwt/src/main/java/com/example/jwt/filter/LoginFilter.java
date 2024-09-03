@@ -51,11 +51,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         //token에 담은 검증을 위한 AuthenticationManager로 전달
         return authenticationManager.authenticate(authToken);
     }
-
+    
     private Cookie createCookie(String key, String value) {
-
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(24*60*60);
+        //24시간 활성화
+
         //cookie.setSecure(true); 
         //HTTPS 쓸 경우 활성화
         //cookie.setPath("/");

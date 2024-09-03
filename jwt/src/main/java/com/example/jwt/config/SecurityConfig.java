@@ -74,6 +74,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/login", "/", "/join").permitAll()
                         .requestMatchers("/reissue").permitAll()
+                        .requestMatchers("/set", "/get/**").permitAll()
                         .anyRequest().authenticated());
 
         //JWTFilter 등록

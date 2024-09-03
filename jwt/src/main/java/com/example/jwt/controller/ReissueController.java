@@ -61,7 +61,6 @@ public class ReissueController {
         for (Cookie cookie : cookies) {
             //리프레시 토큰 있는지 확인
             if (cookie.getName().equals("refresh")) {
-
                 refresh = cookie.getValue();
             }
         }
@@ -85,7 +84,6 @@ public class ReissueController {
         String category = jwtUtil.getCategory(refresh);
 
         if (!category.equals("refresh")) {
-
             //response status code
             return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
         }
@@ -94,7 +92,6 @@ public class ReissueController {
         //DB에 저장되어 있는지 확인
         Boolean isExist = refreshRepository.existsByRefresh(refresh);
         if (!isExist) {
-
             //response body
             return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
         }

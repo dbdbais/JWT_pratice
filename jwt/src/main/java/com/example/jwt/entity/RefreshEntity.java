@@ -6,6 +6,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.redis.core.RedisHash;
+
+import java.util.Map;
 
 @Entity
 @Getter
@@ -18,5 +21,6 @@ public class RefreshEntity {
     private String username;
     private String refresh;
     private String expiration;
+
 
 }

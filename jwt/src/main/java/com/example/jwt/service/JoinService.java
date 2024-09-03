@@ -14,6 +14,7 @@ public class JoinService {
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Autowired
     public JoinService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
